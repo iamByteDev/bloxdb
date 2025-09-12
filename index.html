@@ -173,6 +173,8 @@
         justify-content: center;
         flex-wrap: wrap;
         animation: fadeInUp 1s ease-out 0.9s both;
+        position: relative;
+        top: 150px;
       }
 
       .btn {
@@ -377,18 +379,20 @@
       <div class="hero-content">
         <h1>BloxDB</h1>
         <div class="rotating-text-container">
-          <span style="position: relative; right: 90px">Save data</span>
+          <span style="position: relative; right: 0px">Save data</span>
           <div
             class="rotating-text"
-            style="position: relative; bottom: 40px; right: 70px"
+            style="position: relative; bottom: 40px; right: 190px"
           >
-            <span class="text-word active">flawlessly</span>
-            <span class="text-word">safely</span>
-            <span class="text-word">easily</span>
-            <span class="text-word">quickly</span>
+            <span class="text-word active"><br />handily</span>
+            <span class="text-word"><br />&nbspsafely</span>
+            <span class="text-word"><br />&nbspeasily</span>
+            <span class="text-word" style="left: -20px"
+              ><br />&nbspquickly</span
+            >
           </div>
         </div>
-        <p>
+        <p style="position: relative; top: 150px">
           The ultimate data storage service designed to prevent item duplication
           and ensure data integrity. Experience seamless, secure, and
           lightning-fast data management like never before.
