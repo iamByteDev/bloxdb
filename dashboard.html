@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BloxDB Dashboard</title>
+    <style>
+      :root {
+        --bg-primary: #0f1419;
+        --bg-secondary: #1a2332;
+        --bg-card: #2d4a6b;
+        --text-primary: #ffffff;
+        --text-secondary: #94a3b8;
+        --accent-primary: #3b82f6;
+        --accent-secondary: #60a5fa;
+        --border-color: rgba(59, 130, 246, 0.2);
+        --hover-color: rgba(59, 130, 246, 0.1);
+      }
+
+      [data-theme="light"] {
+        --bg-primary: #ffffff;
+        --bg-secondary: #f8fafc;
+        --bg-card: #e2e8f0;
+        --text-primary: #1e293b;
+        --text-secondary: #64748b;
+        --accent-primary: #3b82f6;
+        --accent-secondary: #1e40af;
+        --border-color: rgba(59, 130, 246, 0.3);
+        --hover-color: rgba(59, 130, 246, 0.05);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+      }
+
+      .dashboard-container {
+        display: flex;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        width: 280px;
+        background: var(--bg-secondary);
+        border-right: 1px solid var(--border-color);
+        padding: 2rem 0;
+        position: fixed;
+        height: 100vh;
+        overflow-y: auto;
+        transition: all 0.3s ease;
+      }
+
+      .sidebar-header {
+        padding: 0 2rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+      }
+
+      .logo {
+        background: linear-gradient(
+          45deg,
+          var(--accent-primary),
+          var(--accent-secondary)
+        );
+        color: white;
+        padding: 1rem;
+        border-radius: 12px;
+        text-align: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+      }
+
+      .theme-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--bg-card);
+        padding: 0.8rem 1.5rem;
+        border-radius: 25px;
+        margin-top: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .theme-toggle:hover {
+        background: var(--hover-color);
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 50px;
+        height: 24px;
+        background: var(--bg-primary);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 20px;
+        height: 20px;
+        background: var(--accent-primary);
+        border-radius: 50%;
+        transition: all 0.3s ease;
+        transform: translateX(0);
+      }
+
+      [data-theme="light"] .toggle-slider {
+        transform: translateX(26px);
+      }
+
+      .nav-menu {
+        padding: 0 1rem;
+      }
+
+      .nav-item {
+        padding: 1rem 1.5rem;
+        margin: 0.5rem 0;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .nav-item:hover {
+        background: var(--hover-color);
+      }
+
+      .nav-item.active {
+        background: var(--accent-primary);
+        color: white;
+      }
+
+      .nav-icon {
+        font-size: 1.2rem;
+      }
+
+      .main-content {
+        flex: 1;
+        margin-left: 280px;
+        padding: 2rem;
+        background: var(--bg-primary);
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding: 1.5rem 2rem;
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+      }
+
+      .header h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        background: linear-gradient(
+          135deg,
+          var(--accent-primary),
+          var(--accent-secondary)
+        );
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .user-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(
+          45deg,
+          var(--accent-primary),
+          var(--accent-secondary)
+        );
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: bold;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
+        animation: fadeIn 0.3s ease-out;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 2rem;
+        transition: all 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(59, 130, 246, 0.2);
+      }
+
+      .stat-value {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: var(--accent-primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .datastore-list {
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        overflow: hidden;
+      }
+
+      .datastore-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+
+      .datastore-item {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: all 0.3s ease;
+      }
+
+      .datastore-item:hover {
+        background: var(--hover-color);
+      }
+
+      .datastore-item:last-child {
+        border-bottom: none;
+      }
+
+      .status-badge {
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .status-active {
+        background: rgba(34, 197, 94, 0.2);
+        color: #22c55e;
+      }
+
+      .status-inactive {
+        background: rgba(239, 68, 68, 0.2);
+        color: #ef4444;
+      }
+
+      .settings-section {
+        background: var(--bg-secondary);
+        border-radius: 16px;
+        border: 1px solid var(--border-color);
+        margin-bottom: 2rem;
+        overflow: hidden;
+      }
+
+      .settings-header {
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+
+      .settings-content {
+        padding: 2rem;
+      }
+
+      .setting-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--border-color);
+      }
+
+      .setting-item:last-child {
+        border-bottom: none;
+      }
+
+      .setting-info h3 {
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+      }
+
+      .setting-info p {
+        color: var(--text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .setting-control {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .toggle {
+        position: relative;
+        width: 50px;
+        height: 24px;
+        background: var(--bg-card);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+
+      .toggle.active {
+        background: var(--accent-primary);
+      }
+
+      .toggle::after {
+        content: "";
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border-radius: 50%;
+        transition: all 0.3s ease;
+      }
+
+      .toggle.active::after {
+        transform: translateX(26px);
+      }
+
+      .input-field {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.7rem 1rem;
+        color: var(--text-primary);
+        font-size: 0.9rem;
+        width: 150px;
+      }
+
+      .btn {
+        background: var(--accent-primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.7rem 1.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .btn:hover {
+        background: var(--accent-secondary);
+        transform: translateY(-2px);
+      }
+
+      @media (max-width: 768px) {
+        .sidebar {
+          width: 100%;
+          position: relative;
+          height: auto;
+        }
+
+        .main-content {
+          margin-left: 0;
+          padding: 1rem;
+        }
+
+        .dashboard-container {
+          flex-direction: column;
+        }
+
+        .header {
+          flex-direction: column;
+          gap: 1rem;
+          text-align: center;
+        }
+
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body data-theme="dark">
+    <div class="dashboard-container">
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo">BloxDB</div>
+          <div class="theme-toggle" onclick="toggleTheme()">
+            <span>🌙 Dark Mode</span>
+            <div class="toggle-switch">
+              <div class="toggle-slider"></div>
+            </div>
+          </div>
+        </div>
+        <nav class="nav-menu">
+          <div class="nav-item active" onclick="switchTab('overview')">
+            <span class="nav-icon">📊</span>
+            <span>Overview</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('datastores')">
+            <span class="nav-icon">🗃️</span>
+            <span>Active Datastores</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('analytics')">
+            <span class="nav-icon">📈</span>
+            <span>Analytics</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('settings')">
+            <span class="nav-icon">⚙️</span>
+            <span>Settings</span>
+          </div>
+          <div class="nav-item" onclick="switchTab('security')">
+            <span class="nav-icon">🔒</span>
+            <span>Security</span>
+          </div>
+        </nav>
+      </aside>
+
+      <main class="main-content">
+        <header class="header">
+          <h1 id="page-title">Dashboard Overview</h1>
+          <div class="user-info">
+            <span>Welcome back, Admin</span>
+            <div class="user-avatar">A</div>
+          </div>
+        </header>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value">1,247</div>
+              <div class="stat-label">Total Records</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">12</div>
+              <div class="stat-label">Active Datastores</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">99.9%</div>
+              <div class="stat-label">Uptime</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">0</div>
+              <div class="stat-label">Duplication Issues</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Datastores Tab -->
+        <div id="datastores" class="tab-content">
+          <div class="datastore-list">
+            <div class="datastore-header">Active Datastores</div>
+            <div class="datastore-item">
+              <div>
+                <strong>UserInventory_Main</strong>
+                <div
+                  style="
+                    font-size: 0.8rem;
+                    color: var(--text-secondary);
+                    margin-top: 0.3rem;
+                  "
+                >
+                  342 records • Last sync: 2 minutes ago
+                </div>
+              </div>
+              <span class="status-badge status-active">Active</span>
+            </div>
+            <div class="datastore-item">
+              <div>
+                <strong>GameItems_Database</strong>
+                <div
+                  style="
+                    font-size: 0.8rem;
+                    color: var(--text-secondary);
+                    margin-top: 0.3rem;
+                  "
+                >
+                  156 records • Last sync: 5 minutes ago
+                </div>
+              </div>
+              <span class="status-badge status-active">Active</span>
+            </div>
+            <div class="datastore-item">
+              <div>
+                <strong>PlayerStats_Archive</strong>
+                <div
+                  style="
+                    font-size: 0.8rem;
+                    color: var(--text-secondary);
+                    margin-top: 0.3rem;
+                  "
+                >
+                  89 records • Last sync: 1 hour ago
+                </div>
+              </div>
+              <span class="status-badge status-inactive">Maintenance</span>
+            </div>
+            <div class="datastore-item">
+              <div>
+                <strong>ShopItems_Live</strong>
+                <div
+                  style="
+                    font-size: 0.8rem;
+                    color: var(--text-secondary);
+                    margin-top: 0.3rem;
+                  "
+                >
+                  234 records • Last sync: 30 seconds ago
+                </div>
+              </div>
+              <span class="status-badge status-active">Active</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value">2,847</div>
+              <div class="stat-label">API Requests Today</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">15ms</div>
+              <div class="stat-label">Average Response Time</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">99.97%</div>
+              <div class="stat-label">Success Rate</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">24GB</div>
+              <div class="stat-label">Storage Used</div>
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-header">Performance Metrics</div>
+            <div class="settings-content">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Peak Traffic Hour</h3>
+                  <p>Highest activity recorded between 2-3 PM UTC</p>
+                </div>
+                <div class="setting-control">
+                  <span style="color: var(--accent-primary); font-weight: bold"
+                    >847 req/h</span
+                  >
+                </div>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Data Integrity Checks</h3>
+                  <p>Automated validation runs completed successfully</p>
+                </div>
+                <div class="setting-control">
+                  <span style="color: #22c55e; font-weight: bold"
+                    >✓ Passed</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings" class="tab-content">
+          <div class="settings-section">
+            <div class="settings-header">General Settings</div>
+            <div class="settings-content">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Auto-Sync</h3>
+                  <p>Automatically sync data across all datastores</p>
+                </div>
+                <div class="setting-control">
+                  <div
+                    class="toggle active"
+                    onclick="toggleSetting(this)"
+                  ></div>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Duplication Prevention</h3>
+                  <p>Enable advanced anti-duplication algorithms</p>
+                </div>
+                <div class="setting-control">
+                  <div
+                    class="toggle active"
+                    onclick="toggleSetting(this)"
+                  ></div>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Sync Interval</h3>
+                  <p>Set automatic synchronization frequency</p>
+                </div>
+                <div class="setting-control">
+                  <input
+                    type="number"
+                    class="input-field"
+                    value="5"
+                    min="1"
+                    max="60"
+                  />
+                  <span style="color: var(--text-secondary)">minutes</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-header">Data Management</div>
+            <div class="settings-content">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Backup Retention</h3>
+                  <p>Number of days to keep automatic backups</p>
+                </div>
+                <div class="setting-control">
+                  <input
+                    type="number"
+                    class="input-field"
+                    value="30"
+                    min="1"
+                    max="365"
+                  />
+                  <span style="color: var(--text-secondary)">days</span>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Compression</h3>
+                  <p>Enable data compression to save storage space</p>
+                </div>
+                <div class="setting-control">
+                  <div class="toggle" onclick="toggleSetting(this)"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div id="security" class="tab-content">
+          <div class="settings-section">
+            <div class="settings-header">Security Settings</div>
+            <div class="settings-content">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Two-Factor Authentication</h3>
+                  <p>Enable 2FA for enhanced account security</p>
+                </div>
+                <div class="setting-control">
+                  <div
+                    class="toggle active"
+                    onclick="toggleSetting(this)"
+                  ></div>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>API Key Rotation</h3>
+                  <p>Automatically rotate API keys for security</p>
+                </div>
+                <div class="setting-control">
+                  <div class="toggle" onclick="toggleSetting(this)"></div>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Session Timeout</h3>
+                  <p>Automatic logout after inactivity</p>
+                </div>
+                <div class="setting-control">
+                  <input
+                    type="number"
+                    class="input-field"
+                    value="60"
+                    min="15"
+                    max="480"
+                  />
+                  <span style="color: var(--text-secondary)">minutes</span>
+                </div>
+              </div>
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h3>Access Logs</h3>
+                  <p>Keep detailed logs of all access attempts</p>
+                </div>
+                <div class="setting-control">
+                  <button class="btn">View Logs</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      function switchTab(tabId) {
+        // Hide all tab contents
+        const tabs = document.querySelectorAll(".tab-content");
+        tabs.forEach((tab) => tab.classList.remove("active"));
+
+        // Remove active class from all nav items
+        const navItems = document.querySelectorAll(".nav-item");
+        navItems.forEach((item) => item.classList.remove("active"));
+
+        // Show selected tab
+        document.getElementById(tabId).classList.add("active");
+
+        // Add active class to clicked nav item
+        event.target.closest(".nav-item").classList.add("active");
+
+        // Update page title
+        const titles = {
+          overview: "Dashboard Overview",
+          datastores: "Active Datastores",
+          analytics: "Analytics & Reports",
+          settings: "Settings",
+          security: "Security Settings",
+        };
+        document.getElementById("page-title").textContent = titles[tabId];
+      }
+
+      function toggleTheme() {
+        const body = document.body;
+        const themeText = document.querySelector(".theme-toggle span");
+
+        if (body.getAttribute("data-theme") === "dark") {
+          body.setAttribute("data-theme", "light");
+          themeText.textContent = "☀️ Light Mode";
+        } else {
+          body.setAttribute("data-theme", "dark");
+          themeText.textContent = "🌙 Dark Mode";
+        }
+      }
+
+      function toggleSetting(toggle) {
+        toggle.classList.toggle("active");
+      }
+
+      // Add some interactive feedback
+      document.querySelectorAll(".stat-card").forEach((card) => {
+        card.addEventListener("mouseenter", function () {
+          this.style.transform = "translateY(-5px) scale(1.02)";
+        });
+
+        card.addEventListener("mouseleave", function () {
+          this.style.transform = "translateY(0) scale(1)";
+        });
+      });
+    </script>
+  </body>
+</html>
